@@ -1,7 +1,5 @@
 # Azure Service Fabric ARM Template
 
-> work in progress, do not use yet...
-
 This repository contains fully automated script to create a Service Fabric cluster with least movement possible. Just sit back and enjoy.
 
 ## How to use
