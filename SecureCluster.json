@@ -62,9 +62,23 @@
       "fabricHttpGatewayPort": "19080",
       "loadBalancedAppPort1": "80",
       "loadBalancedAppPort2": "8081",
-      "certificateStoreValue": "My"
+      "certificateStoreValue": "My",
+      "appInsightsName": "[concat(parameters('namePart'), '-ai')]",
+      "vmssApiVersion": "2017-03-30"
    },
    "resources": [
+    {
+        "name": "[variables('appInsightsName')]",
+        "type": "microsoft.insights/components",
+        "location": "[resourceGroup().location]",
+        "apiVersion": "2014-08-01",
+        "properties": {
+            "ApplicationId": "[parameters('namePart')]",
+            "Application_Type": "web",
+            "Flow_Type": "Redfield",
+            "Request_Source": "IbizaAIExtension"
+        }
+    },
       {
          "apiVersion": "2016-01-01",
          "type": "Microsoft.Storage/storageAccounts",
@@ -321,7 +335,7 @@
          }
       },
       {
-         "apiVersion": "2015-06-15",
+         "apiVersion": "[variables('vmssApiVersion')]",
          "type": "Microsoft.Compute/virtualMachineScaleSets",
          "name": "[variables('vmNodeType0Name')]",
          "location": "[resourceGroup().location]",
@@ -494,7 +508,8 @@
          "name": "[variables('clusterName')]",
          "location": "[resourceGroup().location]",
          "dependsOn": [
-            "[variables('supportLogStorageAccountName')]"
+            "[variables('supportLogStorageAccountName')]",
+            "[variables('appInsightsName')]"
          ],
          "tags": {
             "resourceType": "Service Fabric",
