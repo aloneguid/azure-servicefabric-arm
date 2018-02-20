@@ -376,7 +376,8 @@
          "dependsOn": [
             "[variables('virtualNetworkName')]",
             "[variables('supportLogStorageAccountName')]",
-            "[variables('applicationDiagnosticsStorageAccountName')]"
+            "[variables('applicationDiagnosticsStorageAccountName')]",
+            "[resourceId('microsoft.insights/components/', variables('appInsightsName'))]"
          ],
          "tags": {
             "resourceType": "Service Fabric",
@@ -404,6 +405,7 @@
                               "clusterEndpoint": "[reference(variables('clusterName')).clusterEndpoint]",
                               "nodeTypeRef": "[variables('vmNodeType0Name')]",
                               "enableParallelJobs": true,
+                              "dataPath": "D:\\\\SvcFab",
                               "durabilityLevel": "Silver",
                               "certificate": {
                                  "thumbprint": "[parameters('certificateThumbprint')]",
@@ -427,6 +429,7 @@
                               "WadCfg": {
                                  "DiagnosticMonitorConfiguration": {
                                     "overallQuotaInMB": "50000",
+                                    "sinks": "applicationInsights",
                                     "EtwProviders": {
                                        "EtwEventSourceProviderConfiguration": [
                                           {
@@ -457,6 +460,14 @@
                                           }
                                        ]
                                     }
+                                 },
+                                 "SinksConfig" : {
+                                     "Sink": [
+                                         {
+                                            "name": "applicationInsights",
+                                            "ApplicationInsights": "[reference(concat('microsoft.insights/components/', variables('appInsightsName'))).InstrumentationKey]"
+                                        }
+                                    ]
                                  }
                               }
                            },
@@ -542,8 +553,7 @@
          "name": "[variables('clusterName')]",
          "location": "[resourceGroup().location]",
          "dependsOn": [
-            "[variables('supportLogStorageAccountName')]",
-            "[variables('appInsightsName')]"
+            "[variables('supportLogStorageAccountName')]"
          ],
          "tags": {
             "resourceType": "Service Fabric",
@@ -589,13 +599,14 @@
                      "startPort": "20000"
                   },
                   "clientConnectionEndpointPort": "[variables('fabricTcpGatewayPort')]",
+                  "durabilityLevel": "Silver",
                   "ephemeralPorts": {
                      "endPort": "65534",
                      "startPort": "49152"
                   },
                   "httpGatewayEndpointPort": "[variables('fabricHttpGatewayPort')]",
                   "isPrimary": true,
-                  "vmInstanceCount": 5
+                  "vmInstanceCount": "[parameters('vmInstanceCount')]"
                }
             ],
             "provisioningState": "Default",
