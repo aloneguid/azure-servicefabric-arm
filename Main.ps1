@@ -19,12 +19,12 @@ $ClientCertDnsName = "client" + $Name
 
 #get current context and fail if not logged into Azure
 $RmContext = Get-AzureRmContext
-$RmAccountName = $RmContext.Account.Id
-if($RmAccountName -eq $null)
+if($RmContext.Account -eq $null)
 {
   Write-Host "[!] You are not logged into Azure. Use Login-AzureRmAccount to log in first and optionally select a subscription" -ForegroundColor Red
   exit
 }
+$RmAccountName = $RmContext.Account.Id
 Write-Host "You are running as '$RmAccountName'."
 Write-Host
 
@@ -110,8 +110,7 @@ New-AzureRmResourceGroupDeployment `
   -TemplateFile "$PSScriptRoot\SecureCluster.json" `
   -Mode Incremental `
   -TemplateParameterObject $parameters `
-  -Verbose `
-  -ErrorAction Stop
+  -Verbose
 Write-Host
 
 Write-Host ".all done."
