@@ -28,6 +28,10 @@ A proof that AppInsights actually works:
 
 You can use this program to update the ARM template with new settings and re-run the script. As long as deployment name is the same, the script will update the cluster with new settings.
 
+## How do I access Service Fabric explorer from my browser?
+
+> todo: short answer - use cluster cert generated locally
+> todo: install client cert in the cluster 'cos i'm lazy.
 
 ### Notes (to remove)
 In a scale down scenario, your node type must have a **durability** level of Gold or Silver.
