@@ -1,6 +1,6 @@
-# Azure Service Fabric ARM Template
+# Azure Service Fabric cluster deployment (for lazy people)
 
-This repository contains fully automated script to create a Service Fabric cluster with least movement possible. Just sit back and enjoy.
+This repository contains fully automated script to create a Service Fabric cluster with least hand movement possible. Just sit back and enjoy.
 
 ## How to use
 
