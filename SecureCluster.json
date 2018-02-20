@@ -34,11 +34,60 @@
          "metadata": {
             "description": "Refers to the location URL in your key vault where the cluster certificate was uploaded. The format is https://<name of the vault>.vault.azure.net:443/secrets/<exact location>"
          }
+      },
+      "vmImagePublisher": {
+        "type": "string",
+        "defaultValue": "MicrosoftWindowsServer",
+        "metadata": {
+          "description": "VM image Publisher"
+        }
+      },
+      "vmImageOffer": {
+        "type": "string",
+        "defaultValue": "WindowsServer",
+        "metadata": {
+          "description": "VM image offer"
+        }
+      },
+      "vmImageSku": {
+        "type": "string",
+        "defaultValue": "2016-Datacenter-with-Containers",
+        "metadata": {
+          "description": "VM image SKU"
+        }
+      },
+      "vmImageVersion": {
+        "type": "string",
+        "defaultValue": "latest",
+        "metadata": {
+          "description": "VM image version"
+        }
+      },
+      "storageAccountType": {
+        "type": "string",
+        "allowedValues": [
+          "Standard_LRS",
+          "Standard_GRS"
+        ],
+        "defaultValue": "Standard_LRS",
+        "metadata": {
+          "description": "Replication option for the VM image storage account"
+        }
+      },
+      "vmInstanceCount": {
+        "type": "int",
+        "defaultValue": 5,
+        "metadata": {
+          "description": "Instance count for node type"
+        }
+      },
+      "vmNodeSize": {
+        "type": "string",
+        "defaultValue": "Standard_D2_V2"
       }
    },
    "variables": {
       "clusterName": "[parameters('namePart')]",
-      "vmStorageAccountName": "[concat('vms', uniqueString(resourceGroup().id))]",
       "virtualNetworkName": "vnet",
       "addressPrefix": "10.0.0.0/16",
       "subnet1Name": "Subnet-1",
@@ -57,7 +106,7 @@
       "lbProbeID0": "[concat(variables('lbID0'), '/probes/FabricGatewayProbe')]",
       "lbHttpProbeID0": "[concat(variables('lbID0'), '/probes/FabricHttpGatewayProbe')]",
       "lbNatPoolID0": "[concat(variables('lbID0'), '/inboundNatPools/LoadBalancerBEAddressNatPool')]",
-      "vmNodeType0Name": "general",
+      "vmNodeType0Name": "Primary",
       "fabricTcpGatewayPort": "19000",
       "fabricHttpGatewayPort": "19080",
       "loadBalancedAppPort1": "80",
@@ -79,21 +128,6 @@
             "Request_Source": "IbizaAIExtension"
         }
     },
-      {
-         "apiVersion": "2016-01-01",
-         "type": "Microsoft.Storage/storageAccounts",
-         "name": "[variables('vmStorageAccountName')]",
-         "location": "[resourceGroup().location]",
-         "tags": {
-            "resourceType": "Service Fabric",
-            "clusterName": "[variables('clusterName')]",
-            "displayName": "VMStorageAccount"
-         },
-         "sku": {
-            "name": "Standard_LRS"
-         },
-         "kind": "Storage"
-      },
       {
          "apiVersion": "2016-01-01",
          "type": "Microsoft.Storage/storageAccounts",
@@ -340,7 +374,6 @@
          "name": "[variables('vmNodeType0Name')]",
          "location": "[resourceGroup().location]",
          "dependsOn": [
-            "[variables('vmStorageAccountName')]",
             "[variables('virtualNetworkName')]",
             "[variables('supportLogStorageAccountName')]",
             "[variables('applicationDiagnosticsStorageAccountName')]"
@@ -370,6 +403,8 @@
                            "settings": {
                               "clusterEndpoint": "[reference(variables('clusterName')).clusterEndpoint]",
                               "nodeTypeRef": "[variables('vmNodeType0Name')]",
+                              "enableParallelJobs": true,
+                              "durabilityLevel": "Silver",
                               "certificate": {
                                  "thumbprint": "[parameters('certificateThumbprint')]",
                                  "x509StoreName": "[variables('certificateStoreValue')]"
@@ -479,26 +514,25 @@
                   ]
                },
                "storageProfile": {
-                  "imageReference": {
-                     "publisher": "MicrosoftWindowsServer",
-                     "offer": "WindowsServer",
-                     "sku": "2012-R2-Datacenter",
-                     "version": "latest"
+                "imageReference": {
+                    "publisher": "[parameters('vmImagePublisher')]",
+                    "offer": "[parameters('vmImageOffer')]",
+                    "sku": "[parameters('vmImageSku')]",
+                    "version": "[parameters('vmImageVersion')]"
                   },
                   "osDisk": {
-                     "vhdContainers": [
-                        "[concat(reference(resourceId('Microsoft.Storage/storageAccounts', variables('vmStorageAccountName')), '2016-01-01').primaryEndpoints.blob, 'vhds')]"
-                     ],
-                     "name": "vmssosdisk",
-                     "caching": "ReadOnly",
-                     "createOption": "FromImage"
+                    "caching": "ReadOnly",
+                    "createOption": "FromImage",
+                    "managedDisk": {
+                      "storageAccountType": "[parameters('storageAccountType')]"
+                    }
                   }
                }
             }
          },
          "sku": {
-            "name": "Standard_A2",
-            "capacity": 5,
+            "name": "[parameters('vmNodeSize')]",
+            "capacity": "[parameters('vmInstanceCount')]",
             "tier": "Standard"
          }
       },
@@ -543,7 +577,8 @@
                }
             ],
             "addonFeatures": [
-               "RepairManager"
+               "RepairManager",
+               "DnsService"
             ],
             "managementEndpoint": "[concat('https://', reference(variables('lbIPName')).dnsSettings.fqdn, ':', variables('fabricHttpGatewayPort'))]",
             "nodeTypes": [
@@ -563,7 +598,14 @@
                   "vmInstanceCount": 5
                }
             ],
-            "provisioningState": "Default"
+            "provisioningState": "Default",
+            "reliabilityLevel": "Silver",
+            "reverseProxyCertificate": {
+                "thumbprint": "[parameters('certificateThumbprint')]",
+                "x509StoreName": "[variables('certificateStoreValue')]"
+              },
+            "upgradeMode": "Automatic",
+            "vmImage": "Windows"
          }
       }
    ],
