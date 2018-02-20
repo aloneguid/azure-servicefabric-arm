@@ -22,6 +22,8 @@ The script does the following:
 
 The whole thing just works and doesn't need any human intervention.
 
+![](images/console-static.png)
+
 You can use this program to update the ARM template with new settings and re-run the script. As long as deployment name is the same, the script will update the cluster with new settings.
 
 
