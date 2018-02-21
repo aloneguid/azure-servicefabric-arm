@@ -4,7 +4,7 @@ This repository contains fully automated script to create a Service Fabric clust
 
 ## How to use
 
-Clone this repository and launch `Main.ps1` which asks you **only** for *deployment name*. This is a short string like `mycluster01` (no spaces or hyphens or other strangeness).
+Clone this repository and launch `cluster.ps1` which asks you **only** for *deployment name*. This is a short string like `mycluster01` (no spaces or hyphens or other strangeness).
 
 The script does the following:
 

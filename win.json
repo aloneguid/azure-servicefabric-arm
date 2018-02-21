@@ -35,34 +35,6 @@
             "description": "Refers to the location URL in your key vault where the cluster certificate was uploaded. The format is https://<name of the vault>.vault.azure.net:443/secrets/<exact location>"
          }
       },
-      "vmImagePublisher": {
-        "type": "string",
-        "defaultValue": "MicrosoftWindowsServer",
-        "metadata": {
-          "description": "VM image Publisher"
-        }
-      },
-      "vmImageOffer": {
-        "type": "string",
-        "defaultValue": "WindowsServer",
-        "metadata": {
-          "description": "VM image offer"
-        }
-      },
-      "vmImageSku": {
-        "type": "string",
-        "defaultValue": "2016-Datacenter-with-Containers",
-        "metadata": {
-          "description": "VM image SKU"
-        }
-      },
-      "vmImageVersion": {
-        "type": "string",
-        "defaultValue": "latest",
-        "metadata": {
-          "description": "VM image version"
-        }
-      },
       "vmInstanceCount": {
         "type": "int",
         "defaultValue": 5,
@@ -105,7 +77,11 @@
       "loadBalancedAppPort2": "8081",
       "certificateStoreValue": "My",
       "appInsightsName": "[concat(parameters('namePart'), '-ai')]",
-      "vmssApiVersion": "2017-03-30"
+      "vmssApiVersion": "2017-03-30",
+      "vmImagePublisher": "MicrosoftWindowsServer",
+      "vmImageOffer": "WindowsServer",
+      "vmImageSku": "2016-Datacenter-with-Containers",
+      "vmImageVersion": "latest"
    },
    "resources": [
     {
@@ -512,10 +488,10 @@
                },
                "storageProfile": {
                 "imageReference": {
-                    "publisher": "[parameters('vmImagePublisher')]",
-                    "offer": "[parameters('vmImageOffer')]",
-                    "sku": "[parameters('vmImageSku')]",
-                    "version": "[parameters('vmImageVersion')]"
+                    "publisher": "[variables('vmImagePublisher')]",
+                    "offer": "[variables('vmImageOffer')]",
+                    "sku": "[variables('vmImageSku')]",
+                    "version": "[variables('vmImageVersion')]"
                   },
                   "osDisk": {
                     "caching": "ReadOnly",
@@ -610,6 +586,10 @@
       "clusterProperties": {
          "value": "[reference(variables('clusterName'))]",
          "type": "object"
+      },
+      "RDP": {
+        "username": "[parameters('adminUsername')]",
+        "password": "[parameters('adminPassword')]"
       }
    }
 }
