@@ -91,9 +91,7 @@
       "virtualNetworkName": "vnet",
       "addressPrefix": "10.0.0.0/16",
       "subnet1Name": "Subnet-1",
-      "subnet2Name": "Subnet-2",
       "subnet1Prefix": "10.0.0.0/24",
-      "subnet2Prefix": "10.0.1.0/24",
       "lbName": "[concat('lb-', variables('clusterName'), '-', variables('vmNodeType0Name'))]",
       "lbIPName": "[concat('ip-', variables('clusterName'), '-', variables('vmNodeType0Name'))]",
       "vnetID": "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
@@ -109,6 +107,11 @@
       "vmNodeType0Name": "Primary",
       "fabricTcpGatewayPort": "19000",
       "fabricHttpGatewayPort": "19080",
+      "reverseProxyEndpointPort": "19081",
+      "applicationStartPort": "20000",
+      "applicationEndPort": "30000",
+      "ephemeralStartPort": "49152",
+      "ephemeralEndPort": "65534",
       "loadBalancedAppPort1": "80",
       "loadBalancedAppPort2": "8081",
       "certificateStoreValue": "My",
@@ -179,12 +182,6 @@
                   "name": "[variables('subnet1Name')]",
                   "properties": {
                      "addressPrefix": "[variables('subnet1Prefix')]"
-                  }
-               },
-               {
-                  "name": "[variables('subnet2Name')]",
-                  "properties": {
-                     "addressPrefix": "[variables('subnet2Prefix')]"
                   }
                }
             ]
@@ -595,14 +592,14 @@
                {
                   "name": "[variables('vmNodeType0Name')]",
                   "applicationPorts": {
-                     "endPort": "30000",
-                     "startPort": "20000"
+                     "endPort": "[variables('applicationEndPort')]",
+                     "startPort": "[variables('applicationStartPort')]"
                   },
                   "clientConnectionEndpointPort": "[variables('fabricTcpGatewayPort')]",
                   "durabilityLevel": "Silver",
                   "ephemeralPorts": {
-                     "endPort": "65534",
-                     "startPort": "49152"
+                     "endPort": "[variables('ephemeralEndPort')]",
+                     "startPort": "[variables('ephemeralStartPort')]"
                   },
                   "httpGatewayEndpointPort": "[variables('fabricHttpGatewayPort')]",
                   "isPrimary": true,
