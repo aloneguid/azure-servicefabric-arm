@@ -63,17 +63,6 @@
           "description": "VM image version"
         }
       },
-      "storageAccountType": {
-        "type": "string",
-        "allowedValues": [
-          "Standard_LRS",
-          "Standard_GRS"
-        ],
-        "defaultValue": "Standard_LRS",
-        "metadata": {
-          "description": "Replication option for the VM image storage account"
-        }
-      },
       "vmInstanceCount": {
         "type": "int",
         "defaultValue": 5,
@@ -532,7 +521,7 @@
                     "caching": "ReadOnly",
                     "createOption": "FromImage",
                     "managedDisk": {
-                      "storageAccountType": "[parameters('storageAccountType')]"
+                      "storageAccountType": "Standard_LRS"
                     }
                   }
                }
