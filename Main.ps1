@@ -3,7 +3,6 @@
 param(
    [string] [Parameter(Mandatory = $true)] $Name,
    [string] $Location = "northeurope",
-   [string] $AppInsightsKey,
    [string] $ClusterCertPassword = "Password00;",
    [string] $ClientCertPassword = "Password01;",
    [string] $RdpUsername = "clusteradmin",
@@ -106,7 +105,7 @@ $parameters = @{
 
 New-AzureRmResourceGroupDeployment `
   -ResourceGroupName $Name `
-  -TemplateFile "$PSScriptRoot\SecureCluster.json" `
+  -TemplateFile "$PSScriptRoot\win.json" `
   -Mode Incremental `
   -TemplateParameterObject $parameters `
   -Verbose
