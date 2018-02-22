@@ -2,7 +2,8 @@
 
 param(
    [string] [Parameter(Mandatory = $true)] $Name,
-   [string] $Location = "northeurope"
+   [string] $Location = "northeurope",
+   [string] $ClusterSubnetId
 )
 
 $ErrorActionPreference = 'Stop'
@@ -97,6 +98,7 @@ $parameters = @{
   certificateThumbprint = $clusterCertThumbprint;
   sourceVaultResourceId = $keyVault.ResourceId;
   certificateUrlValue = $importedClusterCert.SecretId;
+  clusterSubnetId = $ClusterSubnetId;
 }
 
 New-AzureRmResourceGroupDeployment `

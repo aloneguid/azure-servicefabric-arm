@@ -33,6 +33,10 @@
       "vmNodeSize": {
          "type": "string",
          "defaultValue": "Standard_D2_V2"
+      },
+      "clusterSubnetId": {
+         "type": "string",
+         "defaultValue": null
       }
    },
    "variables": {
@@ -71,7 +75,7 @@
       "vmImageSku": "2016-Datacenter-with-Containers",
       "vmImageVersion": "latest",
       "rdpUserName": "rdpadmin",
-      "rdpPassword": "[concat('rdp', uniqueString(resourceGroup().id))]"
+      "rdpPassword": "[concat('Rdp!;', uniqueString(resourceGroup().id))]"
    },
    "resources": [
       {
@@ -118,6 +122,7 @@
       },
       {
          "type": "Microsoft.Network/virtualNetworks",
+         "condition": "[empty(parameters('clusterSubnetId'))]",
          "apiVersion": "2016-03-30",
          "name": "[variables('virtualNetworkName')]",
          "location": "[resourceGroup().location]",
@@ -326,7 +331,6 @@
          "name": "[variables('vmNodeType0Name')]",
          "location": "[resourceGroup().location]",
          "dependsOn": [
-            "[variables('virtualNetworkName')]",
             "[variables('supportLogStorageAccountName')]",
             "[variables('applicationDiagnosticsStorageAccountName')]",
             "[resourceId('microsoft.insights/components/', variables('appInsightsName'))]"
@@ -448,7 +452,7 @@
                                        }
                                     ],
                                     "subnet": {
-                                       "id": "[variables('subnet1Ref')]"
+                                       "id": "[coalesce(parameters('clusterSubnetId'), variables('subnet1Ref'))]"
                                     }
                                  }
                               }

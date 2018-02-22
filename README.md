@@ -33,9 +33,10 @@ You can use this program to update the ARM template with new settings and re-run
 > todo: short answer - use cluster cert generated locally
 > todo: install client cert in the cluster 'cos i'm lazy.
 
-### Notes (to remove)
-In a scale down scenario, your node type must have a **durability** level of Gold or Silver.
+## Using existing subnet
 
-Silver level needs at least 5 nodes.
+If your company forces you to put the cluster in a specific secure subnet, you can call the script with additional `ClusterSubnetId` parameter:
 
-The reliability tier you choose determines the minimum number of nodes your primary node type must have. 
+```powershell
+.\cluster.ps1 -Name mycluster -ClusterSubnetId "subnetId"
+```
