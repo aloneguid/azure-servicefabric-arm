@@ -24,15 +24,15 @@
          }
       },
       "vmInstanceCount": {
-        "type": "int",
-        "defaultValue": 5,
-        "metadata": {
-          "description": "Instance count for node type"
-        }
+         "type": "int",
+         "defaultValue": 5,
+         "metadata": {
+            "description": "Instance count for node type"
+         }
       },
       "vmNodeSize": {
-        "type": "string",
-        "defaultValue": "Standard_D2_V2"
+         "type": "string",
+         "defaultValue": "Standard_D2_V2"
       }
    },
    "variables": {
@@ -74,18 +74,18 @@
       "rdpPassword": "[concat('rdp', uniqueString(resourceGroup().id))]"
    },
    "resources": [
-    {
-        "name": "[variables('appInsightsName')]",
-        "type": "microsoft.insights/components",
-        "location": "[resourceGroup().location]",
-        "apiVersion": "2014-08-01",
-        "properties": {
+      {
+         "name": "[variables('appInsightsName')]",
+         "type": "microsoft.insights/components",
+         "location": "[resourceGroup().location]",
+         "apiVersion": "2014-08-01",
+         "properties": {
             "ApplicationId": "[parameters('namePart')]",
             "Application_Type": "web",
             "Flow_Type": "Redfield",
             "Request_Source": "IbizaAIExtension"
-        }
-    },
+         }
+      },
       {
          "apiVersion": "2016-01-01",
          "type": "Microsoft.Storage/storageAccounts",
@@ -117,8 +117,8 @@
          "kind": "Storage"
       },
       {
-         "apiVersion": "2016-03-30",
          "type": "Microsoft.Network/virtualNetworks",
+         "apiVersion": "2016-03-30",
          "name": "[variables('virtualNetworkName')]",
          "location": "[resourceGroup().location]",
          "tags": {
@@ -413,12 +413,12 @@
                                        ]
                                     }
                                  },
-                                 "SinksConfig" : {
-                                     "Sink": [
-                                         {
-                                            "name": "applicationInsights",
-                                            "ApplicationInsights": "[reference(concat('microsoft.insights/components/', variables('appInsightsName'))).InstrumentationKey]"
-                                        }
+                                 "SinksConfig": {
+                                    "Sink": [
+                                       {
+                                          "name": "applicationInsights",
+                                          "ApplicationInsights": "[reference(concat('microsoft.insights/components/', variables('appInsightsName'))).InstrumentationKey]"
+                                       }
                                     ]
                                  }
                               }
@@ -477,18 +477,18 @@
                   ]
                },
                "storageProfile": {
-                "imageReference": {
-                    "publisher": "[variables('vmImagePublisher')]",
-                    "offer": "[variables('vmImageOffer')]",
-                    "sku": "[variables('vmImageSku')]",
-                    "version": "[variables('vmImageVersion')]"
+                  "imageReference": {
+                     "publisher": "[variables('vmImagePublisher')]",
+                     "offer": "[variables('vmImageOffer')]",
+                     "sku": "[variables('vmImageSku')]",
+                     "version": "[variables('vmImageVersion')]"
                   },
                   "osDisk": {
-                    "caching": "ReadOnly",
-                    "createOption": "FromImage",
-                    "managedDisk": {
-                      "storageAccountType": "Standard_LRS"
-                    }
+                     "caching": "ReadOnly",
+                     "createOption": "FromImage",
+                     "managedDisk": {
+                        "storageAccountType": "Standard_LRS"
+                     }
                   }
                }
             }
@@ -564,9 +564,9 @@
             "provisioningState": "Default",
             "reliabilityLevel": "Silver",
             "reverseProxyCertificate": {
-                "thumbprint": "[parameters('certificateThumbprint')]",
-                "x509StoreName": "[variables('certificateStoreValue')]"
-              },
+               "thumbprint": "[parameters('certificateThumbprint')]",
+               "x509StoreName": "[variables('certificateStoreValue')]"
+            },
             "upgradeMode": "Automatic",
             "vmImage": "Windows"
          }
@@ -578,8 +578,8 @@
          "type": "object"
       },
       "rdpPassword": {
-        "value": "[variables('rdpPassword')]",
-        "type": "string"
+         "value": "[variables('rdpPassword')]",
+         "type": "string"
       }
    }
 }
