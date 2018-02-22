@@ -6,6 +6,10 @@ This repository contains fully automated script to create a Service Fabric clust
 
 Clone this repository and launch `cluster.ps1` which asks you **only** for *deployment name*. This is a short string like `mycluster01` (no spaces or hyphens or other strangeness).
 
+Apparently before running the script you need to:
+- Log in to azure account with `Login-AzureRmAccount`
+- Optionally select the subscription you wan to work with (view subscriptions with `Get-AzureRmSubscription` and choose with `Select-AzureRmSubscription`) otherwise the cluster will be created in your default subscription.
+
 The script does the following:
 
 - Creates a new resource group named after *deployment name*
