@@ -8,18 +8,6 @@
             "description": "Name tag"
          }
       },
-      "adminUserName": {
-         "type": "string",
-         "metadata": {
-            "description": "Remote desktop user Id"
-         }
-      },
-      "adminPassword": {
-         "type": "securestring",
-         "metadata": {
-            "description": "Remote desktop user password"
-         }
-      },
       "certificateThumbprint": {
          "type": "string"
       },
@@ -81,7 +69,9 @@
       "vmImagePublisher": "MicrosoftWindowsServer",
       "vmImageOffer": "WindowsServer",
       "vmImageSku": "2016-Datacenter-with-Containers",
-      "vmImageVersion": "latest"
+      "vmImageVersion": "latest",
+      "rdpUserName": "rdpadmin",
+      "rdpPassword": "[concat('rdp', uniqueString(resourceGroup().id))]"
    },
    "resources": [
     {
@@ -469,8 +459,8 @@
                   ]
                },
                "osProfile": {
-                  "adminPassword": "[parameters('adminPassword')]",
-                  "adminUsername": "[parameters('adminUsername')]",
+                  "adminPassword": "[variables('rdpPassword')]",
+                  "adminUsername": "[variables('rdpUserName')]",
                   "computerNamePrefix": "[variables('vmNodeType0Name')]",
                   "secrets": [
                      {
@@ -587,9 +577,9 @@
          "value": "[reference(variables('clusterName'))]",
          "type": "object"
       },
-      "RDP": {
-        "username": "[parameters('adminUsername')]",
-        "password": "[parameters('adminPassword')]"
+      "rdpPassword": {
+        "value": "[variables('rdpPassword')]",
+        "type": "string"
       }
    }
 }

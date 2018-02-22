@@ -2,14 +2,11 @@
 
 param(
    [string] [Parameter(Mandatory = $true)] $Name,
-   [string] $Location = "northeurope",
-   [string] $ClusterCertPassword = "Password00;",
-   [string] $ClientCertPassword = "Password01;",
-   [string] $RdpUsername = "clusteradmin",
-   [string] $RdpPassword = "Password03;"
+   [string] $Location = "northeurope"
 )
 
 $ErrorActionPreference = 'Stop'
+$t = [Reflection.Assembly]::LoadWithPartialName("System.Web")
 
 $ClusterCertFileName = "cluster.pfx"
 $ClientCertFileName = "client.pfx"
@@ -32,7 +29,7 @@ $resourceGroup = Get-AzureRmResourceGroup -Name $Name -Location $Location -Error
 if($resourceGroup -eq $null)
 {
   Write-Host "    resource group doesn't exist, creating a new one..."
-  $rg = New-AzureRmResourceGroup -Name $Name -Location $Location
+  $resourceGroup = New-AzureRmResourceGroup -Name $Name -Location $Location
 }
 else
 {
@@ -60,13 +57,14 @@ Write-Host
 # note that KeyVault policies are separate from RBAC, therefore we need to explicitly grant permissions to performn any actions
 
 # self-signed certificate
-function CreateCert([string]$CertPassword, [string]$CertFileName, [string]$CertDnsName)
+function CreateCert([string]$CertFileName, [string]$CertDnsName)
 {
    Write-Host "    '$CertDnsName' => $CertFileName..."
+   $CertPassword = [System.Web.Security.Membership]::GeneratePassword(15,2)
    $securePassword = ConvertTo-SecureString $CertPassword -AsPlainText -Force
    $thumbprint = (New-SelfSignedCertificate -DnsName $CertDnsName -CertStoreLocation Cert:\CurrentUser\My -KeySpec KeyExchange).Thumbprint
    $certContent = (Get-ChildItem -Path cert:\CurrentUser\My\$thumbprint)
-   $result = Export-PfxCertificate -Cert $certContent -FilePath "$PSScriptRoot\$CertFileName" -Password $securePassword
+   $t = Export-PfxCertificate -Cert $certContent -FilePath "$PSScriptRoot\$CertFileName" -Password $securePassword
 
    $thumbprint
    $certContent
@@ -75,9 +73,9 @@ function CreateCert([string]$CertPassword, [string]$CertFileName, [string]$CertD
 
 Write-Host "[3] Creating self-signed certificates..."
 $clusterCertThumbprint, $clusterCertContent, $clusterCertSecurePassword = `
-  CreateCert $ClusterCertPassword $ClusterCertFileName $ClusterCertDnsName
+  CreateCert $ClusterCertFileName $ClusterCertDnsName
 $clientCertThumbprint, $clientCertContent, $clientCertSecurePassword = `
-  CreateCert $ClientCertPassword $ClientCertFileName $ClientCertDnsName
+  CreateCert $ClientCertFileName $ClientCertDnsName
 Write-Host "        cluster thumbprint: $clusterCertThumbprint"
 Write-Host "        client  thumbprint: $clientCertThumbprint"
 Write-Host
@@ -96,8 +94,6 @@ Write-Host
 Write-Host "[5] Deploying cluster..."
 $parameters = @{
   namePart = $Name;
-  adminUserName = $RdpUsername;
-  adminPassword = $RdpPassword;
   certificateThumbprint = $clusterCertThumbprint;
   sourceVaultResourceId = $keyVault.ResourceId;
   certificateUrlValue = $importedClusterCert.SecretId;
