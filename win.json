@@ -37,6 +37,21 @@
       "clusterSubnetId": {
          "type": "string",
          "defaultValue": null
+        },
+        "omsLocation": {
+            "type": "string",
+            "defaultValue": "westeurope",
+            "allowedValues": [
+                "eastus",
+                "westeurope",
+                "southeastasia",
+                "australiasoutheast",
+                "westcentralus",
+                "japaneast",
+                "uksouth",
+                "centralindia",
+                "canadacentral"
+            ]
       }
    },
    "variables": {
@@ -69,7 +84,12 @@
       "loadBalancedAppPort2": "8081",
       "certificateStoreValue": "My",
       "appInsightsName": "[concat(parameters('namePart'), '-ai')]",
-      "vmssApiVersion": "2017-03-30",
+        "vmssApiVersion": "2017-12-01",
+        "resourcesApiVersion": "2017-08-01",
+        "operationsManagementApiVersion": "2015-11-01-preview",
+        "operationalInsightsApiVersion": "2017-04-26-preview",
+        "appInsightApiVersion": "2015-05-01",
+        "storageApiVersion": "2017-10-01",
       "vmImagePublisher": "MicrosoftWindowsServer",
       "vmImageOffer": "WindowsServer",
       "vmImageSku": "2016-Datacenter-with-Containers",
@@ -82,7 +102,7 @@
          "name": "[variables('appInsightsName')]",
          "type": "microsoft.insights/components",
          "location": "[resourceGroup().location]",
-         "apiVersion": "2014-08-01",
+            "apiVersion": "[variables('appInsightApiVersion')]",
          "properties": {
             "ApplicationId": "[parameters('namePart')]",
             "Application_Type": "web",
@@ -91,7 +111,7 @@
          }
       },
       {
-         "apiVersion": "2016-01-01",
+            "apiVersion": "[variables('storageApiVersion')]",
          "type": "Microsoft.Storage/storageAccounts",
          "name": "[variables('supportLogStorageAccountName')]",
          "location": "[resourceGroup().location]",
@@ -106,7 +126,7 @@
          "kind": "Storage"
       },
       {
-         "apiVersion": "2016-01-01",
+            "apiVersion": "[variables('storageApiVersion')]",
          "type": "Microsoft.Storage/storageAccounts",
          "name": "[variables('applicationDiagnosticsStorageAccountName')]",
          "location": "[resourceGroup().location]",
@@ -123,7 +143,7 @@
       {
          "type": "Microsoft.Network/virtualNetworks",
          "condition": "[empty(parameters('clusterSubnetId'))]",
-         "apiVersion": "2016-03-30",
+            "apiVersion": "2018-01-01",
          "name": "[variables('virtualNetworkName')]",
          "location": "[resourceGroup().location]",
          "tags": {
@@ -148,7 +168,7 @@
          }
       },
       {
-         "apiVersion": "2016-03-30",
+            "apiVersion": "2018-01-01",
          "type": "Microsoft.Network/publicIPAddresses",
          "name": "[variables('lbIPName')]",
          "location": "[resourceGroup().location]",
@@ -165,7 +185,7 @@
          }
       },
       {
-         "apiVersion": "2016-03-30",
+            "apiVersion": "2018-01-01",
          "type": "Microsoft.Network/loadBalancers",
          "name": "[variables('lbName')]",
          "location": "[resourceGroup().location]",
@@ -574,6 +594,50 @@
             "upgradeMode": "Automatic",
             "vmImage": "Windows"
          }
+        },
+        {
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "name": "nestedTemplateOms",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "apiVersion": "[variables('operationsManagementApiVersion')]",
+                            "location": "[parameters('omsLocation')]",
+                            "name": "[parameters('namePart')]",
+                            "type": "Microsoft.OperationsManagement/solutions",
+                            "id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.OperationsManagement/solutions/', parameters('namePart'))]",
+                            "dependsOn": [
+                                "[concat('Microsoft.OperationalInsights/workspaces/', parameters('namePart'))]"
+                            ],
+                            "properties": {
+                                "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces/', parameters('namePart'))]"
+                            },
+                            "plan": {
+                                "name": "[parameters('namePart')]",
+                                "publisher": "Microsoft",
+                                "product": "[Concat('OMSGallery/', parameters('namePart'))]",
+                                "promotionCode": ""
+                            }
+                        },
+                        {
+                            "apiVersion": "[variables('operationalInsightsApiVersion')]",
+                            "name": "[parameters('namePart')]",
+                            "location": "[parameters('omsLocation')]",
+                            "type": "Microsoft.OperationalInsights/workspaces",
+                            "properties": {
+                                "sku": {
+                                    "name": "Free"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
       }
    ],
    "outputs": {
