@@ -44,3 +44,19 @@ If your company forces you to put the cluster in a specific secure subnet, you c
 ```powershell
 .\cluster.ps1 -Name mycluster -ClusterSubnetId "subnetId"
 ```
+
+## Deploying OMS (Log Analytics)
+
+You can deploy **OMS** alongside the cluster, which is an *optional feature*. To deploy it, just pass a switch to `cluster.ps1`:
+
+```powershell
+.\cluster.ps1 -Name mycluster -DeployOMS
+```
+
+You will see OMS solution and workspace deployed to the resource group and connected to Azure Service Fabric cluster:
+
+![](images/oms.png)
+
+## Known Issues
+
+Please read the [Known Issues](knownissues.md) for possible problems you may encounter while using this script.

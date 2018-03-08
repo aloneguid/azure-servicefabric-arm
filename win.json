@@ -37,6 +37,26 @@
       "clusterSubnetId": {
          "type": "string",
          "defaultValue": null
+      },
+      "omsRegion": {
+         "type": "string",
+         "defaultValue": "West Europe",
+         "allowedValues": [
+               "West Europe",
+               "East US",
+               "Southeast Asia"
+         ],
+         "metadata": {
+               "description": "Specify the Azure Region for your OMS workspace (not available in all regions)"
+         }
+      },
+      "omsSolutionName" : {
+         "type": "string",
+         "defaultValue": null
+      },
+      "omsWorkspaceName": {
+         "type": "string",
+         "defaultValue": null
       }
    },
    "variables": {
@@ -574,7 +594,60 @@
             "upgradeMode": "Automatic",
             "vmImage": "Windows"
          }
-      }
+      },
+      {
+         "apiVersion": "2015-11-01-preview",
+         "location": "[parameters('omsRegion')]",
+         "name": "[parameters('omsWorkspaceName')]",
+         "type": "Microsoft.OperationalInsights/workspaces",
+         "properties": {
+             "sku": {
+                 "name": "Free"
+             }
+         },
+         "resources": [
+             {
+                 "apiVersion": "2015-11-01-preview",
+                 "name": "[concat(variables('applicationDiagnosticsStorageAccountName'),parameters('omsWorkspaceName'))]",
+                 "type": "storageinsightconfigs",
+                 "dependsOn": [
+                     "[concat('Microsoft.OperationalInsights/workspaces/', parameters('omsWorkspaceName'))]",
+                     "[concat('Microsoft.Storage/storageAccounts/', variables('applicationDiagnosticsStorageAccountName'))]"
+                 ],
+                 "properties": {
+                     "containers": [],
+                     "tables": [
+                         "WADServiceFabric*EventTable",
+                         "WADWindowsEventLogsTable",
+                         "WADETWEventTable"
+                     ],
+                     "storageAccount": {
+                         "id": "[resourceId('Microsoft.Storage/storageaccounts/', variables('applicationDiagnosticsStorageAccountName'))]",
+                         "key": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('applicationDiagnosticsStorageAccountName')),'2015-06-15').key1]"
+                     }
+                 }
+             }
+         ]
+     },
+     {
+         "apiVersion": "2015-11-01-preview",
+         "location": "[parameters('omsRegion')]",
+         "name": "[parameters('omsSolutionName')]",
+         "type": "Microsoft.OperationsManagement/solutions",
+         "id": "[resourceId('Microsoft.OperationsManagement/solutions/', parameters('omsSolutionName'))]",
+         "dependsOn": [
+             "[concat('Microsoft.OperationalInsights/workspaces/', parameters('omsWorkspacename'))]"
+         ],
+         "properties": {
+             "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces/', parameters('omsWorkspacename'))]"
+         },
+         "plan": {
+             "name": "[parameters('omsSolutionName')]",
+             "publisher": "Microsoft",
+             "product": "[Concat('OMSGallery/', parameters('omsSolutionName'))]",
+             "promotionCode": ""
+         }
+     }
    ],
    "outputs": {
       "clusterProperties": {

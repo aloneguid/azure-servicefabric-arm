@@ -3,8 +3,11 @@
 param(
    [string] [Parameter(Mandatory = $true)] $Name,
    [string] $Location = "northeurope",
+   [switch] $DeployOMS = $false,
    [string] $ClusterSubnetId
 )
+
+# deploy OMS workspace: https://docs.microsoft.com/en-us/azure/log-analytics/log-analytics-service-fabric-azure-resource-manager
 
 $ErrorActionPreference = 'Stop'
 $t = [Reflection.Assembly]::LoadWithPartialName("System.Web")
@@ -94,12 +97,21 @@ Write-Host
 # cluster location is taken from resource group
 
 Write-Host "[5] Deploying cluster..."
+$omsSolutionName = $null
+$omsWorkspaceName = $null
+if($DeployOMS) {
+   $omsSolutionName = $Name;
+   $omsWorkspaceName = $Name;
+}
+
 $parameters = @{
   namePart = $Name;
   certificateThumbprint = $clusterCertThumbprint;
   sourceVaultResourceId = $keyVault.ResourceId;
   certificateUrlValue = $importedClusterCert.SecretId;
   clusterSubnetId = $ClusterSubnetId;
+  omsSolutionName = $omsSolutionName;
+  omsWorkspaceName = $omsWorkspaceName;
 }
 
 New-AzureRmResourceGroupDeployment `
