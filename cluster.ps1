@@ -9,12 +9,12 @@ param(
 $ErrorActionPreference = 'Stop'
 $t = [Reflection.Assembly]::LoadWithPartialName("System.Web")
 
-$ClusterCertFileName = "cluster.pfx"
-$ClientCertFileName = "client.pfx"
+$ClusterCertFileName = "cluster-$Name.pfx"
+$ClientCertFileName = "client-$Name.pfx"
 $ClusterCertDnsName = "cluster" + $Name
 $ClientCertDnsName = "client" + $Name
 
-#get current context and fail if not logged into Azure
+# get current context and fail if not logged into Azure
 $RmContext = Get-AzureRmContext
 if($RmContext.Account -eq $null) {
   Write-Host "[!] You are not logged into Azure. Use Login-AzureRmAccount to log in first and optionally select a subscription" -ForegroundColor Red
@@ -62,6 +62,7 @@ function CreateCert([string]$CertFileName, [string]$CertDnsName)
 {
    Write-Host "    '$CertDnsName' => $CertFileName..."
    $CertPassword = [System.Web.Security.Membership]::GeneratePassword(15,2)
+   Write-Host "        password: $CertPassword"
    $securePassword = ConvertTo-SecureString $CertPassword -AsPlainText -Force
    $thumbprint = (New-SelfSignedCertificate -DnsName $CertDnsName -CertStoreLocation Cert:\CurrentUser\My -KeySpec KeyExchange).Thumbprint
    $certContent = (Get-ChildItem -Path cert:\CurrentUser\My\$thumbprint)
