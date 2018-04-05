@@ -57,6 +57,10 @@ You will see OMS solution and workspace deployed to the resource group and conne
 
 ![](images/oms.png)
 
+## Active Directory Authentication
+
+> todo
+
 ## Known Issues
 
 Please read the [Known Issues](knownissues.md) for possible problems you may encounter while using this script.

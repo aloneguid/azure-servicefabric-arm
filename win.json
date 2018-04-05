@@ -57,6 +57,10 @@
       "omsWorkspaceName": {
          "type": "string",
          "defaultValue": null
+      },
+      "omsEnabled": {
+         "type": "bool",
+         "defaultValue": false
       }
    },
    "variables": {
@@ -582,7 +586,8 @@
                   },
                   "httpGatewayEndpointPort": "[variables('fabricHttpGatewayPort')]",
                   "isPrimary": true,
-                  "vmInstanceCount": "[parameters('vmInstanceCount')]"
+                  "vmInstanceCount": "[parameters('vmInstanceCount')]",
+                  "reverseProxyEndpointPort": "[variables('reverseProxyEndpointPort')]"
                }
             ],
             "provisioningState": "Default",
@@ -600,6 +605,7 @@
          "location": "[parameters('omsRegion')]",
          "name": "[parameters('omsWorkspaceName')]",
          "type": "Microsoft.OperationalInsights/workspaces",
+         "condition": "[parameters('omsEnabled')]",
          "properties": {
              "sku": {
                  "name": "Free"
@@ -635,6 +641,7 @@
          "name": "[parameters('omsSolutionName')]",
          "type": "Microsoft.OperationsManagement/solutions",
          "id": "[resourceId('Microsoft.OperationsManagement/solutions/', parameters('omsSolutionName'))]",
+         "condition": "[parameters('omsEnabled')]",
          "dependsOn": [
              "[concat('Microsoft.OperationalInsights/workspaces/', parameters('omsWorkspacename'))]"
          ],

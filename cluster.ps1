@@ -97,12 +97,8 @@ Write-Host
 # cluster location is taken from resource group
 
 Write-Host "[5] Deploying cluster..."
-$omsSolutionName = $null
-$omsWorkspaceName = $null
-if($DeployOMS) {
-   $omsSolutionName = $Name;
-   $omsWorkspaceName = $Name;
-}
+$omsSolutionName = "$Name-sln"
+$omsWorkspaceName = "$Name-wksp"
 
 $parameters = @{
   namePart = $Name;
@@ -112,6 +108,7 @@ $parameters = @{
   clusterSubnetId = $ClusterSubnetId;
   omsSolutionName = $omsSolutionName;
   omsWorkspaceName = $omsWorkspaceName;
+  omsEnabled = $DeployOMS.IsPresent;
 }
 
 New-AzureRmResourceGroupDeployment `
@@ -120,6 +117,7 @@ New-AzureRmResourceGroupDeployment `
   -Mode Incremental `
   -TemplateParameterObject $parameters `
   -Verbose
+  
 Write-Host
 
 Write-Host ".all done."
