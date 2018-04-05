@@ -21,6 +21,8 @@ The script does the following:
   - Creates storage accounts for diagnostics
   - Creates VM Scale Set with **Silver** level for both **reliability** and **durability** which has 5 nodes in it. 5 nodes is a minimum required amount for autoscaling to work flawlessly.
   - Binds AppInsights resource to Service Fabric cluster
+- Enables Reverse Proxy
+- Enables DNS Service
 
 The whole thing just works and doesn't need any human intervention.
 
@@ -56,6 +58,10 @@ You can deploy **OMS** alongside the cluster, which is an *optional feature*. To
 You will see OMS solution and workspace deployed to the resource group and connected to Azure Service Fabric cluster:
 
 ![](images/oms.png)
+
+## Deploying a mini cluster
+
+This cluster type should only be used for development purposes or really small applications. The cluster is still secure and has full capabilities like above, however it can't be scaled and reliability level is set to *None*. To create this cluster pass `-MiniCluster` switch to the script.
 
 ## Active Directory Authentication
 

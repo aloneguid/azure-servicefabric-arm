@@ -4,6 +4,7 @@ param(
    [string] [Parameter(Mandatory = $true)] $Name,
    [string] $Location = "northeurope",
    [switch] $DeployOMS = $false,
+   [switch] $MiniCluster = $false,
    [string] $ClusterSubnetId
 )
 
@@ -106,14 +107,24 @@ $parameters = @{
   sourceVaultResourceId = $keyVault.ResourceId;
   certificateUrlValue = $importedClusterCert.SecretId;
   clusterSubnetId = $ClusterSubnetId;
-  omsSolutionName = $omsSolutionName;
-  omsWorkspaceName = $omsWorkspaceName;
-  omsEnabled = $DeployOMS.IsPresent;
 }
+
+if(-not $MiniCluster) {
+   $parameters.omsSolutionName = $omsSolutionName;
+   $parameters.omsWorkspaceName = $omsWorkspaceName;
+   $parameters.omsEnabled = $DeployOMS.IsPresent;
+}
+
+$templateName = "prod"
+if($MiniCluster) {
+   $templateName = "mini"
+}
+
+Write-Host "    using template '$templateName'"
 
 New-AzureRmResourceGroupDeployment `
   -ResourceGroupName $Name `
-  -TemplateFile "$PSScriptRoot\win.json" `
+  -TemplateFile "$PSScriptRoot\$templateName.json" `
   -Mode Incremental `
   -TemplateParameterObject $parameters `
   -Verbose
