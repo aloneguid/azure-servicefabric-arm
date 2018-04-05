@@ -117,7 +117,7 @@ New-AzureRmResourceGroupDeployment `
   -Mode Incremental `
   -TemplateParameterObject $parameters `
   -Verbose
-  
+
 Write-Host
 
-Write-Host ".all done."
+Write-Host ".all done." -ForegroundColor Green

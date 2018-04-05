@@ -293,6 +293,25 @@
                      },
                      "protocol": "Tcp"
                   }
+               },
+               {
+                  "name": "LBSFReverseProxyRule",
+                  "properties": {
+                     "backendAddressPool": {
+                        "id": "[variables('lbPoolID0')]"
+                     },
+                     "backendPort": "[variables('reverseProxyEndpointPort')]",
+                     "enableFloatingIP": false,
+                     "frontendIPConfiguration": {
+                        "id": "[variables('lbIPConfig0')]"
+                     },
+                     "frontendPort": "[variables('reverseProxyEndpointPort')]",
+                     "idleTimeoutInMinutes": 5,
+                     "probe":{
+                        "id": "[concat(variables('lbID0'),'/probes/SFReverseProxyProbe')]"
+                     },
+                     "protocol": "Tcp"
+                  }
                }
             ],
             "probes": [
@@ -329,6 +348,16 @@
                      "intervalInSeconds": 5,
                      "numberOfProbes": 2,
                      "port": "[variables('loadBalancedAppPort2')]",
+                     "protocol": "Tcp"
+                  }
+               },
+               {
+                  "name": "SFReverseProxyProbe",
+                  "description": "for more see https://docs.microsoft.com/en-us/azure/service-fabric/service-fabric-reverseproxy",
+                  "properties": {
+                     "intervalInSeconds": 5,
+                     "numberOfProbes": 2,
+                     "port": "[variables('reverseProxyEndpointPort')]",
                      "protocol": "Tcp"
                   }
                }
@@ -548,6 +577,7 @@
             "clientCertificateCommonNames": [],
             "clientCertificateThumbprints": [],
             "clusterState": "Default",
+            "provisioningState": "Default",
             "diagnosticsStorageAccountConfig": {
                "blobEndpoint": "[reference(resourceId('Microsoft.Storage/storageAccounts', variables('supportLogStorageAccountName')), '2016-01-01').primaryEndpoints.blob]",
                "protectedAccountKeyName": "StorageAccountKey1",
@@ -590,12 +620,7 @@
                   "reverseProxyEndpointPort": "[variables('reverseProxyEndpointPort')]"
                }
             ],
-            "provisioningState": "Default",
             "reliabilityLevel": "Silver",
-            "reverseProxyCertificate": {
-               "thumbprint": "[parameters('certificateThumbprint')]",
-               "x509StoreName": "[variables('certificateStoreValue')]"
-            },
             "upgradeMode": "Automatic",
             "vmImage": "Windows"
          }
