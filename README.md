@@ -36,8 +36,12 @@ You can use this program to update the ARM template with new settings and re-run
 
 ## How do I access Service Fabric explorer from my browser?
 
-> todo: short answer - use cluster cert generated locally
-> todo: install client cert in the cluster 'cos i'm lazy.
+The script generates a `PFX certificate` during the successful cluster creation, therefore you can use it to connect from the browser. The PFX is placed in the same folder as cluster creation script (added to `.gitignore`):
+
+![](images/2019-06-12-13-38-37.png)
+
+![](images/cert.gif)
+
 
 ## Deploying OMS (Log Analytics)
 
