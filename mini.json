@@ -33,10 +33,6 @@
       "vmNodeSize": {
          "type": "string",
          "defaultValue": "Standard_D2_V2"
-      },
-      "clusterSubnetId": {
-         "type": "string",
-         "defaultValue": null
       }
    },
    "variables": {
@@ -122,7 +118,6 @@
       },
       {
          "type": "Microsoft.Network/virtualNetworks",
-         "condition": "[empty(parameters('clusterSubnetId'))]",
          "apiVersion": "2016-03-30",
          "name": "[variables('virtualNetworkName')]",
          "location": "[resourceGroup().location]",
@@ -482,7 +477,7 @@
                                        }
                                     ],
                                     "subnet": {
-                                       "id": "[coalesce(parameters('clusterSubnetId'), variables('subnet1Ref'))]"
+                                       "id": "[variables('subnet1Ref')]"
                                     }
                                  }
                               }
@@ -571,6 +566,15 @@
                      }
                   ],
                   "name": "Security"
+               },
+               {
+                  "parameters": [
+                     {
+                        "name": "VolumePluginPorts",
+                        "value": "sfazurefile:19100"
+                     }
+                  ],
+                  "name": "Hosting"
                }
             ],
             "addonFeatures": [

@@ -4,8 +4,7 @@ param(
    [string] [Parameter(Mandatory = $true)] $Name,
    [string] $Location = "northeurope",
    [switch] $DeployOMS = $false,
-   [switch] $MiniCluster = $false,
-   [string] $ClusterSubnetId
+   [switch] $MiniCluster = $false
 )
 
 # deploy OMS workspace: https://docs.microsoft.com/en-us/azure/log-analytics/log-analytics-service-fabric-azure-resource-manager
@@ -19,8 +18,8 @@ $ClusterCertDnsName = "cluster" + $Name
 $ClientCertDnsName = "client" + $Name
 
 # get current context and fail if not logged into Azure
-$RmContext = Get-AzureRmContext
-if($RmContext.Account -eq $null) {
+$RmContext = Get-AzContext
+if($null -eq $RmContext.Account) {
   Write-Host "[!] You are not logged into Azure. Use Login-AzureRmAccount to log in first and optionally select a subscription" -ForegroundColor Red
   exit
 }
@@ -30,11 +29,11 @@ Write-Host
 
 # Prepare resource group
 Write-Host "[1] Preparing resource group '$Name'..."
-$resourceGroup = Get-AzureRmResourceGroup -Name $Name -Location $Location -ErrorAction Ignore
-if($resourceGroup -eq $null)
+$resourceGroup = Get-AzResourceGroup -Name $Name -Location $Location -ErrorAction Ignore
+if($null -eq $resourceGroup)
 {
   Write-Host "    resource group doesn't exist, creating a new one..."
-  $resourceGroup = New-AzureRmResourceGroup -Name $Name -Location $Location
+  $resourceGroup = New-AzResourceGroup -Name $Name -Location $Location
 }
 else
 {
@@ -46,67 +45,96 @@ Write-Host
 # properly create a new Key Vault
 # KV must be enabled for deployment (last parameter)
 Write-Host "[2] Preparing Key Vault '$Name'..."
-$keyVault = Get-AzureRmKeyVault -VaultName $Name -ErrorAction Ignore
+$keyVault = Get-AzKeyVault -VaultName $Name -ErrorAction Ignore
 if($keyVault -eq $null)
 {
   Write-Host "    key vault doesn't exist, creating a new one..."
-  $keyVault = New-AzureRmKeyVault -VaultName $Name -ResourceGroupName $Name -Location $Location -EnabledForDeployment
+  $keyVault = New-AzKeyVault -VaultName $Name -ResourceGroupName $Name -Location $Location -EnabledForDeployment
 }
 else
 {
   Write-Host "    key vault already exists."
 }
 Write-Host "    setting access policy for '$RmAccountName' to allow certificate import..."
-Set-AzureRmKeyVaultAccessPolicy -VaultName $Name -ResourceGroupName $Name -PermissionsToCertificates all -EmailAddress $RmAccountName
+Set-AzKeyVaultAccessPolicy -VaultName $Name -ResourceGroupName $Name -PermissionsToCertificates get,import,list -EmailAddress $RmAccountName
 Write-Host
 # note that KeyVault policies are separate from RBAC, therefore we need to explicitly grant permissions to performn any actions
 
 # self-signed certificate
-function CreateCert([string]$CertFileName, [string]$CertDnsName)
-{
-   Write-Host "    '$CertDnsName' => $CertFileName..."
-   $CertPassword = [System.Web.Security.Membership]::GeneratePassword(15,2)
-   Write-Host "        password: $CertPassword"
-   $securePassword = ConvertTo-SecureString $CertPassword -AsPlainText -Force
-   $thumbprint = (New-SelfSignedCertificate -DnsName $CertDnsName -CertStoreLocation Cert:\CurrentUser\My -KeySpec KeyExchange).Thumbprint
-   $certContent = (Get-ChildItem -Path cert:\CurrentUser\My\$thumbprint)
-   $t = Export-PfxCertificate -Cert $certContent -FilePath "$PSScriptRoot\$CertFileName" -Password $securePassword
 
-   $thumbprint
-   $certContent
-   $securePassword
+function CreateSelfSignedCertificate([string]$DnsName)
+{
+    Write-Host "Creating self-signed certificate with dns name $DnsName"
+    
+    $filePath = "$PSScriptRoot\$DnsName.pfx"
+
+    Write-Host "  generating password... " -NoNewline
+    $certPassword = "123"
+    Write-Host "$certPassword"
+
+    Write-Host "  generating certificate... " -NoNewline
+    $securePassword = ConvertTo-SecureString $certPassword -AsPlainText -Force
+    $thumbprint = (New-SelfSignedCertificate -DnsName $DnsName -CertStoreLocation Cert:\CurrentUser\My -KeySpec KeyExchange).Thumbprint
+    Write-Host "$thumbprint."
+    
+    Write-Host "  exporting to $filePath..."
+    $certContent = (Get-ChildItem -Path cert:\CurrentUser\My\$thumbprint)
+    $t = Export-PfxCertificate -Cert $certContent -FilePath $filePath -Password $securePassword
+    Set-Content -Path "$PSScriptRoot\$DnsName.thumb.txt" -Value $thumbprint
+    Set-Content -Path "$PSScriptRoot\$DnsName.pwd.txt" -Value $certPassword
+    Write-Host "  exported."
+
+    $thumbprint
+    $certPassword
+    $filePath
 }
 
-Write-Host "[3] Creating self-signed certificates..."
-$clusterCertThumbprint, $clusterCertContent, $clusterCertSecurePassword = `
-  CreateCert $ClusterCertFileName $ClusterCertDnsName
-$clientCertThumbprint, $clientCertContent, $clientCertSecurePassword = `
-  CreateCert $ClientCertFileName $ClientCertDnsName
-Write-Host "        cluster thumbprint: $clusterCertThumbprint"
-Write-Host "        client  thumbprint: $clientCertThumbprint"
-Write-Host
+function EnsureSelfSignedCertificate([string]$KeyVaultName, [string]$CertName)
+{
+    $localPath = "$PSScriptRoot\$CertName.pfx"
+    $existsLocally = Test-Path $localPath
 
-Write-Host "[4] Importing certificates into Key Vault..."
-Write-Host "    importing cluster certificate..."
-$importedClusterCert = Import-AzureKeyVaultCertificate `
-  -VaultName $Name -Name $ClusterCertDnsName -FilePath "$PSScriptRoot\$ClusterCertFileName" -Password $clusterCertSecurePassword
-Write-Host "    importing client certificate..."
-$importedClientCert = Import-AzureKeyVaultCertificate `
-  -VaultName $Name -Name $ClientCertDnsName -FilePath "$PSScriptRoot\$ClientCertFileName" -Password $clientCertSecurePassword
+    # create or read certificate
+    if($existsLocally) {
+        Write-Host "Certificate exists locally."
+        $thumbprint = Get-Content "$PSScriptRoot\$Certname.thumb.txt"
+        $password = Get-Content "$PSScriptRoot\$Certname.pwd.txt"
+        Write-Host "  thumb: $thumbprint, pass: $password"
+
+    } else {
+        $thumbprint, $password, $localPath = CreateSelfSignedCertificate $CertName
+    }
+
+    #import into vault if needed
+    Write-Host "Checking certificate in key vault..."
+    $kvCert = Get-AzureKeyVaultCertificate -VaultName $KeyVaultName -Name $CertName
+    if($null -eq $kvCert) {
+        Write-Host "  importing..."
+        $securePassword = ConvertTo-SecureString $password -AsPlainText -Force
+        $kvCert = Import-AzureKeyVaultCertificate -VaultName $KeyVaultName -Name $CertName -FilePath $localPath -Password $securePassword
+    } else {
+        Write-Host "  certificate already imported."
+    }
+
+    $kvCert
+}
+
+
+Write-Host "[3] Creating self-signed certificates..."
+$Cert = EnsureSelfSignedCertificate $Name $ClusterCertDnsName
 Write-Host
 
 # cluster location is taken from resource group
 
-Write-Host "[5] Deploying cluster..."
+Write-Host "[4] Deploying cluster..."
 $omsSolutionName = "$Name-sln"
 $omsWorkspaceName = "$Name-wksp"
 
 $parameters = @{
   namePart = $Name;
-  certificateThumbprint = $clusterCertThumbprint;
+  certificateThumbprint = $Cert.Thumbprint;
   sourceVaultResourceId = $keyVault.ResourceId;
-  certificateUrlValue = $importedClusterCert.SecretId;
-  clusterSubnetId = $ClusterSubnetId;
+  certificateUrlValue = $Cert.SecretId;
 }
 
 if(-not $MiniCluster) {
@@ -122,7 +150,7 @@ if($MiniCluster) {
 
 Write-Host "    using template '$templateName'"
 
-New-AzureRmResourceGroupDeployment `
+New-AzResourceGroupDeployment `
   -ResourceGroupName $Name `
   -TemplateFile "$PSScriptRoot\$templateName.json" `
   -Mode Incremental `

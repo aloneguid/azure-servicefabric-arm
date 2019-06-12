@@ -39,14 +39,6 @@ You can use this program to update the ARM template with new settings and re-run
 > todo: short answer - use cluster cert generated locally
 > todo: install client cert in the cluster 'cos i'm lazy.
 
-## Using existing subnet
-
-If your company forces you to put the cluster in a specific secure subnet, you can call the script with additional `ClusterSubnetId` parameter:
-
-```powershell
-.\cluster.ps1 -Name mycluster -ClusterSubnetId "subnetId"
-```
-
 ## Deploying OMS (Log Analytics)
 
 You can deploy **OMS** alongside the cluster, which is an *optional feature*. To deploy it, just pass a switch to `cluster.ps1`:
