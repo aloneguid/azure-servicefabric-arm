@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ServiceManifest Name="AzureFilesVolumePluginPkg"
+                 Version="6.4.571.9590"
+                 xmlns="http://schemas.microsoft.com/2011/01/fabric"
+                 xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 ManifestId="59b4fb77-0363-4e05-bc73-96758498dbe9">
+  <ServiceTypes>
+    <StatelessServiceType ServiceTypeName="AzureFilesVolumePluginServiceType" />
+  </ServiceTypes>
+  <CodePackage Name="Code" Version="6.4.571.9590">
+    <SetupEntryPoint>
+      <ExeHost>
+        <Program>setupEntryPoint.sh</Program>
+      </ExeHost>
+    </SetupEntryPoint>
+    <EntryPoint>
+      <ExeHost>
+        <Program>mainEntryPoint.sh</Program>
+      </ExeHost>
+    </EntryPoint>
+  </CodePackage>
+  <ConfigPackage Name="Config" Version="6.4.571.9590" />
+  <Resources>
+    <Endpoints>
+	    <Endpoint Protocol="http" Name="ServiceHttpEndpoint" />
+    </Endpoints>
+  </Resources>
+</ServiceManifest>
