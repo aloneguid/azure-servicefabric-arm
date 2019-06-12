@@ -107,11 +107,11 @@ function EnsureSelfSignedCertificate([string]$KeyVaultName, [string]$CertName)
 
     #import into vault if needed
     Write-Host "Checking certificate in key vault..."
-    $kvCert = Get-AzureKeyVaultCertificate -VaultName $KeyVaultName -Name $CertName
+    $kvCert = Get-AzKeyVaultCertificate -VaultName $KeyVaultName -Name $CertName
     if($null -eq $kvCert) {
         Write-Host "  importing..."
         $securePassword = ConvertTo-SecureString $password -AsPlainText -Force
-        $kvCert = Import-AzureKeyVaultCertificate -VaultName $KeyVaultName -Name $CertName -FilePath $localPath -Password $securePassword
+        $kvCert = Import-AzKeyVaultCertificate -VaultName $KeyVaultName -Name $CertName -FilePath $localPath -Password $securePassword
     } else {
         Write-Host "  certificate already imported."
     }
