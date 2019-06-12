@@ -67,8 +67,8 @@
       "appInsightsName": "[concat(parameters('namePart'), '-ai')]",
       "vmssApiVersion": "2017-03-30",
       "vmImagePublisher": "MicrosoftWindowsServer",
-      "vmImageOffer": "WindowsServer",
-      "vmImageSku": "2016-Datacenter-with-Containers",
+      "vmImageOffer": "WindowsServerSemiAnnual",
+      "vmImageSku": "Datacenter-Core-1803-with-Containers-smalldisk",
       "vmImageVersion": "latest",
       "rdpUserName": "rdpadmin",
       "rdpPassword": "[concat('Rdp!;', uniqueString(resourceGroup().id))]"
